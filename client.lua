@@ -691,7 +691,7 @@ Citizen.CreateThread(function()
 				jumplength=jumplength+1
 				local isStillJumping = IsPedJumping(PlayerPedId())
 			until not isStillJumping
-			if jumplength > 50 then
+			if jumplength > 250 then
 				TriggerServerEvent("HG_AntiCheat:Jump", jumplength )
 			end
         end
