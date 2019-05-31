@@ -8,12 +8,16 @@ This resource is official by HackerGeo
 
 ### Installation
 
-- Add the resources in `server.cfg` so:
+- Add in `server.cfg` so:
 ```
 start HG_AntiCheat
-
+add_ace resource.hg_anticheat command.sets allow
 ```
 
+- Add premission to `vrp/cfg/groups.lua` so:
+```
+"anticheat.settings",
+```
 
 
 <!-- - Turn ON resource -->

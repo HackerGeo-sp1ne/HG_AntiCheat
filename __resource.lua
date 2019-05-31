@@ -25,5 +25,6 @@ client_scripts {
 server_scripts {
     "@vrp/lib/utils.lua",
     '@mysql-async/lib/MySQL.lua',
-    "server.lua"
+    "server.lua",
+    "config.lua"
 }

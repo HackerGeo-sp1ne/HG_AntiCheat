@@ -13,8 +13,8 @@
 ------------------------------------------------------------------------------------------------------------------
 
 
-AntiCheat = true
-AntiCheatStatus = "~g~Activ"
+AntiCheat = false
+AntiCheatStatus = "~r~Inactiv"
 PedStatus = 0
 
 CarsBL = {
@@ -439,7 +439,6 @@ ObjectsBL={
 "prop_Ld_ferris_wheel",
 "p_tram_crash_s",
 "p_oil_slick_01",
-"p_ld_stinger_s",
 "p_ld_soc_ball_01",
 "p_parachute1_s",
 "p_cablecar_s",
@@ -580,7 +579,7 @@ Citizen.CreateThread(function()
 		v = GetVehiclePedIsIn(playerPed, false)
 		end
 		playerPed = GetPlayerPed(-1)
-		if whitelisted == nil and playerPed and v then
+		if playerPed and v then
 		if GetPedInVehicleSeat(v, -1) == playerPed then
 			checkCar(GetVehiclePedIsIn(playerPed, false))
             end
@@ -593,12 +592,10 @@ function checkCar(car)
 	if car then
 		carModel = GetEntityModel(car)
 		carName = GetDisplayNameFromVehicleModel(carModel)
-      if (AntiCheat == true)then
 		if isCarBlacklisted(carModel) then
-			_DeleteEntity(car)
+            _DeleteEntity(car)
 			TriggerServerEvent("HG_AntiCheat:Cars", blacklistedCar )
         end
-      end
 	end
 end
 
@@ -622,16 +619,15 @@ Citizen.CreateThread(function()
 	for _,theWeapon in ipairs(WeaponBL) do
         Wait(1)
         if (AntiCheat == true)then
-		if HasPedGotWeapon(PlayerPedId(),GetHashKey(theWeapon),false) == 1 then
-		RemoveAllPedWeapons(PlayerPedId(),false)
-        end
+		    if HasPedGotWeapon(PlayerPedId(),GetHashKey(theWeapon),false) == 1 then
+                RemoveAllPedWeapons(PlayerPedId(),false)
+            end
         end
 	end
 	end
 end)
 
 function DeleteObjects(object, detach)
-    if (AntiCheat == true)then
     if DoesEntityExist(object) then
 	NetworkRequestControlOfEntity(object)
 	while not NetworkHasControlOfEntity(object) do
@@ -646,9 +642,8 @@ function DeleteObjects(object, detach)
 	SetEntityAsMissionEntity(object, true, true)
 	SetEntityAsNoLongerNeeded(object)
     DeleteEntity(object)
-    
+
 	end
-end
 end
 
 Citizen.CreateThread(function()
@@ -669,12 +664,11 @@ Citizen.CreateThread(function()
 		for i=1,#ObjectsBL do
 		if GetEntityModel(object) == GetHashKey(ObjectsBL[i]) then
             DeleteObjects(object, false)
-
+            
 		end
         end
     end
         finished, object = FindNextObject(handle)
-
 	until not finished
 	EndFindObject(handle)
 	end
@@ -682,7 +676,7 @@ end)
 
 Citizen.CreateThread(function()
 	while true do
-        Citizen.Wait(0)
+        Citizen.Wait(1)
         if (AntiCheat == true)then
 		if IsPedJumping(PlayerPedId()) then
 			local jumplength = 0
@@ -692,7 +686,7 @@ Citizen.CreateThread(function()
 				local isStillJumping = IsPedJumping(PlayerPedId())
 			until not isStillJumping
 			if jumplength > 250 then
-				TriggerServerEvent("HG_AntiCheat:Jump", jumplength )
+                TriggerServerEvent("HG_AntiCheat:Jump", jumplength )
 			end
         end
     end
@@ -702,7 +696,7 @@ end)
 function Initialize(scaleform)
     local scaleform = RequestScaleformMovie(scaleform)
     while not HasScaleformMovieLoaded(scaleform) do
-        Citizen.Wait(0)
+        Citizen.Wait(1)
     end
     PushScaleformMovieFunction(scaleform, "SHOW_SHARD_WASTED_MP_MESSAGE")
     PushScaleformMovieFunctionParameterString(anticheatm)
@@ -710,15 +704,49 @@ function Initialize(scaleform)
     return scaleform
 end
 
+function DrawText3D(x,y,z, text)
+    local onScreen,_x,_y = World3dToScreen2d(x,y,z)
+    local px,py,pz = table.unpack(GetGameplayCamCoord())
+    local dist = GetDistanceBetweenCoords(px,py,pz, x,y,z, 1)
+ 
+    local scale = (1/dist)*2
+    local fov = (1/GetGameplayCamFov())*100
+    local scale = scale*fov
 
+    if onScreen then
+        SetTextScale(0.0*scale, 0.55*scale)
+        SetTextFont(font)
+        SetTextProportional(1)
+        SetTextColour(color.r, color.g, color.b, color.alpha)
+        SetTextDropshadow(0, 0, 0, 0, 255)
+        SetTextEdge(2, 0, 0, 0, 150)
+        --SetTextDropShadow()
+        --SetTextOutline()
+        SetTextEntry("STRING")
+        SetTextCentre(true)
+        AddTextComponentString(text)
+        EndTextCommandDisplayText(_x, _y)
+    end
+end
 Citizen.CreateThread(function()
 while true do
-	Citizen.Wait(0)
+	Citizen.Wait(1)
     if anticheatm then
 		scaleform = Initialize("mp_big_message_freemode")
 		DrawScaleformMovieFullscreen(scaleform, 255, 255, 255, 255, 0)
     end
 end
+end)
+
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(0)
+		if (AntiCheat == true) then
+			SetEntityProofs(GetPlayerPed(-1), false, true, true, false, false, false, false, false)
+		else
+			SetEntityProofs(GetPlayerPed(-1), false, false, false, false, false, false, false, false)
+		end
+	end
 end)
 
 RegisterNetEvent("HG_AntiCheat:Toggle")
@@ -729,7 +757,7 @@ AddEventHandler("HG_AntiCheat:Toggle", function()
         anticheatm = "~y~AntiCheat ~g~Pornit"
         Citizen.Wait(5000)
         anticheatm = false
-    	else
+    else
 		AntiCheat = false
         AntiCheatStatus = "~r~Inactiv"
         anticheatm = "~y~AntiCheat ~r~Oprit"
@@ -741,11 +769,13 @@ end)
 
 Citizen.CreateThread(function()
     while (true) do
-        Citizen.Wait(500)
-        KillAllPeds()
-        DeleteEntity(ped)
+        Citizen.Wait(3000)
+        if (AntiCheat == true)then
+            KillAllPeds()
+            DeleteEntity(ped)
+        end
     end
-end)
+end) 
 
 local entityEnumerator = {
     __gc = function(enum)
@@ -791,10 +821,6 @@ function EnumerateVehicles()
     return EnumerateEntities(FindFirstVehicle, FindNextVehicle, EndFindVehicle)
 end
   
-function EnumeratePickups()
-    return EnumerateEntities(FindFirstPickup, FindNextPickup, EndFindPickup)
-end
-
 local function RGBRainbow( frequency )
 	local result = {}
 	local curtime = GetGameTimer() / 1000
@@ -838,21 +864,6 @@ function ACstatus(x,y ,width,height,scale, text, r,g,b,a, outline)
     AddTextComponentString(text)
     DrawText(x, y)
 end
-Citizen.CreateThread( function()
-	while true do
-        Wait( 0 )
-        rgb = RGBRainbow(2)
-        ACstatus(0.19, 0.88, 1.0,1.0,0.4, "AntiCheat: "..AntiCheatStatus, rgb.r, rgb.g, rgb.b, 255, 200)
-        ACstatus(0.19, 0.88 + 0.03, 1.0,1.0,0.35, "NPCs: ~r~"..PedStatus, 255, 255, 255, 200)
-	end
-end )
-
-Citizen.CreateThread(function()
-	while true do
-		Wait(600000)
-        TriggerEvent("chatMessage", "^3[HG_AntiCheat]", {255, 255, 0}, "^1 SE VERIFICA ^3PLAYERII!")
-	end
-end)
 
 function KillAllPeds()
     local pedweapon
@@ -861,7 +872,6 @@ function KillAllPeds()
         if DoesEntityExist(ped) then
             pedid = GetEntityModel(ped)
             pedweapon = GetSelectedPedWeapon(ped)
-            if (AntiCheat == true)then
             if pedweapon == -1312131151 or not IsPedHuman(ped) then 
                 ApplyDamageToPed(ped, 1000, false)
                 DeleteEntity(ped)
@@ -920,6 +930,14 @@ function KillAllPeds()
                   switch(pedid) 
             end
         end
-        end
     end
 end
+
+Citizen.CreateThread( function()
+	while true do
+        Citizen.Wait(0)
+        rgb = RGBRainbow(2)
+        ACstatus(0.19, 0.88, 1.0,1.0,0.4, "AntiCheat: "..AntiCheatStatus, rgb.r, rgb.g, rgb.b, 255, 200)
+        ACstatus(0.19, 0.88 + 0.03, 1.0,1.0,0.35, "~w~NPCs: ~r~"..PedStatus, rgb.r, rgb.g, rgb.b, 225)
+	end
+end )

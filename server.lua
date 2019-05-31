@@ -20,17 +20,21 @@ vRP = Proxy.getInterface("vRP")
 vRPclient = Tunnel.getInterface("vRP","HG_AntiCheat")
 MySQL = module("vrp_mysql", "MySQL")
 
-MySQL.createCommand("vRP/HG_Ban", "UPDATE vrp_users SET banned='1' WHERE id = @id")
+MySQL.createCommand("vRP/HG_SetBan", "UPDATE vrp_users SET banned='1' WHERE id = @id")
+ExecuteCommand(('sets AntiCheat "Activ 🔵"')) -- add: "add_ace resource.hg_anticheat command.sets allow" in server.cfg
+print("[HG_AntiCheat] Baza de date verificata! (Bun anticheat a facut asta adevarat!)") -- de facut pt confiiig
+
 
 RegisterServerEvent("HG_AntiCheat:Cars")
 AddEventHandler("HG_AntiCheat:Cars", function()
 	local user_id = vRP.getUserId({source})
 	local player = vRP.getUserSource({user_id})
 	local name = GetPlayerName(source)
-	print("[HG_AntiCheat] | " ..name.. "["..user_id.. "] A PRIMIT BAN (CARS BLACKLISTED)!")
-	TriggerClientEvent('chatMessage', -1, '^3[HG_AntiCheat]', {255, 0, 0}, "^1" ..name.. "^3[ID:" ..user_id.. "]^1 A PRIMIT BAN ^3(reason: CARS BLACKLISTED)!" )
-	DropPlayer(source, "[HG_AntiCheat] | AI FOST DETECTAT CU HACK! (CARS BLACKLISTED)")
-	MySQL.query("vRP/HG_Ban", {id = user_id})
+	local cfg = getConfig()
+	print(cfg.anticheat.name.." | " ..name.. "["..user_id.. "] "..cfg.cars.desc.." ("..cfg.cars.reason..")!")
+	TriggerClientEvent('chatMessage', -1, '^3'..cfg.anticheat.name, {255, 0, 0}, "^1" ..name.. "^3[ID:" ..user_id.. "]^1 "..cfg.cars.desc.." ^3("..cfg.anticheat.reason..": "..cfg.cars.reason..")!" )
+	DropPlayer(source, cfg.anticheat.name.." | "..cfg.cars.kick.."! ("..cfg.cars.reason..")")
+	MySQL.query("vRP/HG_SetBan", {id = user_id})
 end)
 
 RegisterServerEvent("HG_AntiCheat:Jump")
@@ -38,31 +42,54 @@ AddEventHandler("HG_AntiCheat:Jump", function()
 	local user_id = vRP.getUserId({source})
 	local player = vRP.getUserSource({user_id})
 	local name = GetPlayerName(source)
-	print("[HG_AntiCheat] | " ..name.. "["..user_id.. "] A PRIMIT BAN (SUPER JUMP)!")
-	TriggerClientEvent('chatMessage', -1, '^3[HG_AntiCheat]', {255, 0, 0}, "^1" ..name.. "^3[ID:" ..user_id.. "]^1 A PRIMIT BAN ^3(reason: SUPER JUMP)!" )
-	DropPlayer(source, "[HG_AntiCheat] | AI FOST DETECTAT CU HACK! (SUPER JUMP)")
-	MySQL.query("vRP/HG_Ban", {id = user_id})
+	local cfg = getConfig()
+	print(cfg.anticheat.name.." | " ..name.. "["..user_id.. "] "..cfg.jump.desc.." ("..cfg.jump.reason..")!")
+	TriggerClientEvent('chatMessage', -1, '^3'..cfg.anticheat.name, {255, 0, 0}, "^1" ..name.. "^3[ID:" ..user_id.. "]^1 "..cfg.jump.desc.." ^3("..cfg.anticheat.reason..": "..cfg.jump.reason..")!" )
+	DropPlayer(source, cfg.anticheat.name.." | "..cfg.jump.kick.."! ("..cfg.jump.reason..")")
 end)
 
 AddEventHandler("vRP:playerSpawn", function(user_id, source, first_spawn)
 	local resourceName = ""..GetCurrentResourceName()..""
-	vRPclient.notifyPicture(source,{"CHAR_LESTER",1,"AntiCheat",false,"~y~Server protejat de ~g~".. resourceName .."!"})
+	local cfg = getConfig()
+	vRPclient.notifyPicture(source,{"CHAR_LESTER",1,cfg.anticheat.name,false,cfg.anticheat.protect})
 end)
 
-RegisterCommand("ac", function(thePlayer, args, rawCommand)
-	TriggerClientEvent("HG_AntiCheat:Toggle", -1, 1)
+AddEventHandler('playerConnecting', function(playerName, kick)
+		local mysource = source
+		local identifiers = GetPlayerIdentifiers(mysource)
+		local steamid = identifiers[1]
+		local cfg = getConfig()
+		if (cfg.anticheat.steam_require == true) then
+		if steamid:sub(1,6) == "steam:" then
+		else
+			kick(cfg.anticheat.name..""..cfg.anticheat.steam)
+			CancelEvent()
+		end
+	end
 end)
 
-_vHG_AntiCheat = '1.5.0'
+RegisterCommand("ac", function(source)
+	local user_id = vRP.getUserId({source})	
+	local player = vRP.getUserSource({user_id})
+	local name = GetPlayerName(source)
+	local cfg = getConfig()
+    if vRP.hasPermission({user_id, cfg.anticheat.perm}) then
+		TriggerClientEvent("HG_AntiCheat:Toggle", -1, 1)
+    else
+		vRPclient.notifyPicture(source,{"CHAR_LESTER",1,cfg.anticheat.name,false,cfg.anticheat.no_perm})
+    end
+end)
+
 PerformHttpRequest( "https://www.hackergeo.com/anticheat.txt", function( err, text, headers )
 	Citizen.Wait( 1000 )
 	local resourceName = "("..GetCurrentResourceName()..")"
-	RconPrint( "\nYour AntiCheat Version: " .. _vHG_AntiCheat)
-	RconPrint( "\nNew AntiCheat Version: " .. text)
+	local cfg = getConfig()
+	RconPrint( "\n"..cfg.version.current..": " ..cfg.version.version)
+	RconPrint( "\n"..cfg.version.new..": " .. text)
 	
 	if ( text ~= _vHG_AntiCheat ) then
-		RconPrint( "\n\n\t|||||||||||||||||||||||||||||||||\n\t|| ".. resourceName .." is Outdated! ||\n\t|| Download the latest version ||\n\t||    From the HackerGeo.com   ||\n\t|||||||||||||||||||||||||||||||||\n\n" )
+		RconPrint( "\n\n\t|||||||||||||||||||||||||||||||||\n\t|| ".. resourceName .." "..cfg.version.outdated.."! ||\n\t|| "..cfg.version.download.." ||\n\t||    "..cfg.version.from.."   ||\n\t|||||||||||||||||||||||||||||||||\n\n" )
 	else
-		RconPrint( "\n\n\t|||||||||||||||||||||||||||||||||\n\t||                             ||\n\t||".. resourceName .." is up to date!||\n\t||                             ||\n\t|||||||||||||||||||||||||||||||||\n\n" )
+		RconPrint( "\n\n\t|||||||||||||||||||||||||||||||||\n\t||                             ||\n\t||".. resourceName .." "..cfg.version.updated.."!||\n\t||                             ||\n\t|||||||||||||||||||||||||||||||||\n\n" )
 	end
 end, "GET", "", { what = 'this' } )
