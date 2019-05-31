@@ -22,7 +22,7 @@ MySQL = module("vrp_mysql", "MySQL")
 
 MySQL.createCommand("vRP/HG_SetBan", "UPDATE vrp_users SET banned='1' WHERE id = @id")
 ExecuteCommand(('sets AntiCheat "Activ 🔵"')) -- add: "add_ace resource.hg_anticheat command.sets allow" in server.cfg
-print("[HG_AntiCheat] Baza de date verificata! (Bun anticheat a facut asta adevarat!)") -- de facut pt confiiig
+print("[HG_AntiCheat] Baza de date verificata!") -- de facut pt confiiig
 
 
 RegisterServerEvent("HG_AntiCheat:Cars")
