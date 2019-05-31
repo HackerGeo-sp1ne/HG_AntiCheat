@@ -55,11 +55,11 @@ AddEventHandler("vRP:playerSpawn", function(user_id, source, first_spawn)
 end)
 
 AddEventHandler('playerConnecting', function(playerName, kick)
-		local mysource = source
-		local identifiers = GetPlayerIdentifiers(mysource)
-		local steamid = identifiers[1]
-		local cfg = getConfig()
-		if (cfg.anticheat.steam_require == true) then
+	local mysource = source
+	local identifiers = GetPlayerIdentifiers(mysource)
+	local steamid = identifiers[1]
+	local cfg = getConfig()
+	if cfg.anticheat.steam_require then
 		if steamid:sub(1,6) == "steam:" then
 		else
 			kick(cfg.anticheat.name..""..cfg.anticheat.steam)
@@ -74,9 +74,9 @@ RegisterCommand("ac", function(source)
 	local name = GetPlayerName(source)
 	local cfg = getConfig()
     if vRP.hasPermission({user_id, cfg.anticheat.perm}) then
-		TriggerClientEvent("HG_AntiCheat:Toggle", -1, 1)
+	TriggerClientEvent("HG_AntiCheat:Toggle", -1, 1)
     else
-		vRPclient.notifyPicture(source,{"CHAR_LESTER",1,cfg.anticheat.name,false,cfg.anticheat.no_perm})
+	vRPclient.notifyPicture(source,{"CHAR_LESTER",1,cfg.anticheat.name,false,cfg.anticheat.no_perm})
     end
 end)
 
