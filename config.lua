@@ -41,7 +41,7 @@ cfg.cars = {
 }
 
 cfg.version = {
-    version = "1.7.6",
+    version = "1.7.7",
     new = "New AntiCheat Version",
     current = "Your AntiCheat Version",
     updated = "is up to date",
