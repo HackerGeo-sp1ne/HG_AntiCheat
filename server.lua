@@ -87,7 +87,7 @@ PerformHttpRequest( "https://www.hackergeo.com/anticheat.txt", function( err, te
 	RconPrint( "\n"..cfg.version.current..": " ..cfg.version.version)
 	RconPrint( "\n"..cfg.version.new..": " .. text)
 	
-	if ( text ~= _vHG_AntiCheat ) then
+	if ( text ~= cfg.version.version ) then
 		RconPrint( "\n\n\t|||||||||||||||||||||||||||||||||\n\t|| ".. resourceName .." "..cfg.version.outdated.."! ||\n\t|| "..cfg.version.download.." ||\n\t||    "..cfg.version.from.."   ||\n\t|||||||||||||||||||||||||||||||||\n\n" )
 	else
 		RconPrint( "\n\n\t|||||||||||||||||||||||||||||||||\n\t||                             ||\n\t||".. resourceName .." "..cfg.version.updated.."!||\n\t||                             ||\n\t|||||||||||||||||||||||||||||||||\n\n" )
