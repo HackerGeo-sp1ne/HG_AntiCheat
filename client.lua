@@ -13,8 +13,8 @@
 ------------------------------------------------------------------------------------------------------------------
 
 
-AntiCheat = false
-AntiCheatStatus = "~r~Inactiv"
+AntiCheat = true
+AntiCheatStatus = "~g~Activ"
 PedStatus = 0
 
 CarsBL = {
